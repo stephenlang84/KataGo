@@ -2,12 +2,15 @@
 #define COMMANDLINE_H_
 
 #include "../core/config_parser.h"
+#include <queue>
 
 #define TCLAP_NAMESTARTSTRING "-" //Use single dashes for all flags
 #include <tclap/CmdLine.h>
 
 class KataHelpOutput;
 class Logger;
+
+extern std::queue<std::string> commandQueue;
 
 class KataGoCommandLine : public TCLAP::CmdLine
 {

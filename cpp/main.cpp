@@ -174,8 +174,11 @@ static int handleSubcommand(const string& subcommand, const vector<string>& args
   return 0;
 }
 
-
+#ifdef EMBEDDED_MODE
+int katago_main(int argc, const char* const* argv) {
+#else
 int main(int argc, const char* const* argv) {
+#endif
   vector<string> args = MainArgs::getCommandLineArgsUTF8(argc,argv);
   MainArgs::makeCoutAndCerrAcceptUTF8();
 

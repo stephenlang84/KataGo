@@ -1,5 +1,9 @@
 #include "core/global.h"
 
+#ifdef EMBEDDED_MODE
+int katago_main(int argc, const char* const* argv);
+#endif
+
 namespace MainCmds {
   int analysis(const std::vector<std::string>& args);
   int benchmark(const std::vector<std::string>& args);

@@ -30,6 +30,8 @@ set(USE_BACKEND CACHE STRING "Neural net backend")
 string(TOUPPER "${USE_BACKEND}" USE_BACKEND)
 set_property(CACHE USE_BACKEND PROPERTY STRINGS "" CUDA TENSORRT OPENCL EIGEN)
 
+set(EMBEDDED_MODE_BUILD 0 CACHE BOOL "Build with embedded mode for use in other projects")
+
 set(USE_TCMALLOC 0 CACHE BOOL "Use TCMalloc")
 set(NO_GIT_REVISION 0 CACHE BOOL "Disable embedding the git revision into the compiled exe")
 set(USE_AVX2 0 CACHE BOOL "Compile with AVX2")
@@ -39,8 +41,11 @@ set(USE_CACHE_TENSORRT_PLAN 0 CACHE BOOL "Use TENSORRT plan cache. May use a lot
 mark_as_advanced(USE_CACHE_TENSORRT_PLAN)
 
 #--------------------------- NEURAL NET BACKEND ------------------------------------------------------------------------
-
-message(STATUS "Building 'katago' executable for GTP engine and other tools.")
+if (EMBEDDED_MODE_BUILD)
+  message(STATUS "Building with embedded lib for use in other projects")
+else()
+  message(STATUS "Building 'katago' executable for GTP engine and other tools.")
+endif()
 if(USE_BACKEND STREQUAL "CUDA")
   message(STATUS "-DUSE_BACKEND=CUDA, using CUDA backend.")
 
@@ -262,6 +267,7 @@ add_executable(katago
   tests/testnn.cpp
   tests/tinymodel.cpp
   tests/tinymodeldata.cpp
+  tests/testembededmode.cpp
   distributed/client.cpp
   command/commandline.cpp
   command/analysis.cpp
@@ -281,6 +287,11 @@ add_executable(katago
   command/writetrainingdata.cpp
   main.cpp
   )
+
+if(EMBEDDED_MODE_BUILD)
+  message(STATUS "Building with embedded lib for use in other projects")
+  target_compile_definitions(katago PRIVATE EMBEDDED_MODE)
+endif()
 
 if(USE_BACKEND STREQUAL "CUDA")
   target_compile_definitions(katago PRIVATE USE_CUDA_BACKEND)

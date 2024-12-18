@@ -19,6 +19,9 @@
 
 using namespace std;
 
+// Define the commandQueue
+std::queue<std::string> commandQueue;
+
 static const vector<string> knownCommands = {
   //Basic GTP commands
   "protocol_version",
@@ -1875,6 +1878,20 @@ static GTPEngine::AnalyzeArgs parseAnalyzeCommand(
   return args;
 }
 
+bool GetLine(string& line) {
+  #ifdef EMBEDDED_MODE
+  // Read from buffer
+  if(commandQueue.empty()) {
+    line = commandQueue.front();
+    commandQueue.pop();
+  } else {
+  #else
+  if(!getline(cin,line)) {
+  #endif
+    return false;
+  }
+  return true;
+}
 
 int MainCmds::gtp(const vector<string>& args) {
   Board::initHash();
@@ -2106,7 +2123,7 @@ int MainCmds::gtp(const vector<string>& args) {
   bool currentlyGenmoving = false;
   bool currentlyAnalyzing = false;
   string line;
-  while(getline(cin,line)) {
+  while(GetLine(line)) {
     //Parse command, extracting out the command itself, the arguments, and any GTP id number for the command.
     string command;
     vector<string> pieces;
