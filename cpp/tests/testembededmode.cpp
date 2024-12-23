@@ -15,11 +15,11 @@ void host() {
 
 
 int main() {
+    std::cout << "Hello, KataGo!" << std::endl;
     std::thread kataGoGTP(gtp);
     std::thread gui(host);
     kataGoGTP.join();
     gui.join();
-
     return 0;
 }
 #endif
