@@ -84,3 +84,10 @@ for_release/
 tests/results/matchsgfs/
 tests/results/matchsgfs2/
 /build
+
+# For Metal Backend
+cpp/.ninja_deps
+cpp/.ninja_log
+cpp/build.ninja
+cpp/KataGoSwift.*
+cpp/include/KataGoSwift/KataGoSwift-swift.h

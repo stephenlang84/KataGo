@@ -33,6 +33,7 @@ from torch.cuda.amp import GradScaler, autocast
 import modelconfigs
 from model_pytorch import Model, ExtraOutputs, MetadataEncoder
 from metrics_pytorch import Metrics
+from push_back_generator import PushBackGenerator
 import load_model
 import data_processing_pytorch
 from metrics_logging import accumulate_metrics, log_metrics, clear_metric_nonfinite
@@ -419,7 +420,7 @@ def main(rank: int, world_size: int, args, multi_gpu_device_ids, readpipes, writ
 
             if initial_checkpoint is not None:
                 if os.path.exists(initial_checkpoint):
-                    logging.info("Using initial checkpoint: {initial_checkpoint}")
+                    logging.info(f"Using initial checkpoint: {initial_checkpoint}")
                     path_to_load_from = initial_checkpoint
                 else:
                     raise Exception("No preexisting checkpoint found, initial checkpoint provided is invalid: {initial_checkpoint}")
@@ -737,7 +738,7 @@ def main(rank: int, world_size: int, args, multi_gpu_device_ids, readpipes, writ
             if curdatadir != last_curdatadir:
                 if not os.path.exists(curdatadir):
                     if quit_if_no_data:
-                        logging.info("Shuffled data path does not exist, there seems to be no data or not enough data yet, qutting: %s" % curdatadir)
+                        logging.info("Shuffled data path does not exist, there seems to be no data or not enough data yet, quitting: %s" % curdatadir)
                         sys.exit(0)
                     logging.info("Shuffled data path does not exist, there seems to be no shuffled data yet, waiting and trying again later: %s" % curdatadir)
                     time.sleep(30)
@@ -746,7 +747,7 @@ def main(rank: int, world_size: int, args, multi_gpu_device_ids, readpipes, writ
                 trainjsonpath = os.path.join(curdatadir,"train.json")
                 if not os.path.exists(trainjsonpath):
                     if quit_if_no_data:
-                        logging.info("Shuffled data train.json file does not exist, there seems to be no data or not enough data yet, qutting: %s" % trainjsonpath)
+                        logging.info("Shuffled data train.json file does not exist, there seems to be no data or not enough data yet, quitting: %s" % trainjsonpath)
                         sys.exit(0)
                     logging.info("Shuffled data train.json file does not exist, there seems to be no shuffled data yet, waiting and trying again later: %s" % trainjsonpath)
                     time.sleep(30)
@@ -830,7 +831,7 @@ def main(rank: int, world_size: int, args, multi_gpu_device_ids, readpipes, writ
                             train_files_shuffled = train_files.copy()
                             train_state["data_files_used"] = set()
 
-                trainfilegenerator = train_files_gen()
+                trainfilegenerator = PushBackGenerator(train_files_gen())
                 vdatadir = os.path.join(curdatadir,"val")
 
             # Same directory as before, no new shuffle
@@ -871,7 +872,8 @@ def main(rank: int, world_size: int, args, multi_gpu_device_ids, readpipes, writ
             if batches_to_use_so_far + num_batches_this_file > num_batches_per_subepoch:
                 # If we're going over the desired amount, randomly skip the file with probability equal to the
                 # proportion of batches over - this makes it so that in expectation, we have the desired number of batches
-                if batches_to_use_so_far > 0 and random.random() >= (batches_to_use_so_far + num_batches_this_file - num_batches_per_subepoch) / num_batches_this_file:
+                if batches_to_use_so_far > 0 and random.random() <= (batches_to_use_so_far + num_batches_this_file - num_batches_per_subepoch) / num_batches_this_file:
+                    trainfilegenerator.push_back(filename)
                     found_enough = True
                     break
 

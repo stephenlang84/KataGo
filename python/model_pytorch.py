@@ -12,6 +12,29 @@ import modelconfigs
 
 EXTRA_SCORE_DISTR_RADIUS = 60
 
+def enumerate_tensor(tensor):
+    """Iterate over (idx_tuple, value) for all values in a tensor"""
+    from itertools import product
+
+    shape = tensor.shape
+    indices = [range(s) for s in shape]
+    for idx in product(*indices):
+        value = tensor[idx]
+        yield idx, value
+
+def debug_print_tensor(tensor):
+    torch.set_printoptions(threshold=10000000,sci_mode=False)
+    print(tensor)
+    total1 = 0
+    total2 = 0
+    total3 = 0
+    for (nn,cc,hh,ww), value in enumerate_tensor(tensor):
+        total1 += (((cc + hh // 2 + ww // 3 + nn // 4) % 2)*2-1) * value
+        total2 += (((cc + hh // 3 + ww // 1 + nn // 3) % 2)*2-1) * value
+        total3 += (((cc + hh // 5 + ww // 2 + nn // 2) % 2)*2-1) * value
+    print(f"TOTAL {out.shape} {total1} {total2} {total3}")
+
+
 class ExtraOutputs:
     def __init__(self, requested: List[str]):
         self.requested: Set[str] = set(requested)
@@ -1251,14 +1274,18 @@ class PolicyHead(torch.nn.Module):
 
         if config["version"] <= 11:
             self.num_policy_outputs = 4
-        else:
+        elif config["version"] <= 15:
             self.num_policy_outputs = 6
+        else:
+            self.num_policy_outputs = 8
         # Output 0: policy prediction
         # Output 1: opponent reply policy prediction
         # Output 2: soft policy prediction
         # Output 3: soft opponent reply policy prediction
         # Output 4: long-term-optimistic policy prediction
         # Output 5: short-term-optimistic policy prediction
+        # Output 6: q value winloss prediction, pre-tanh
+        # Output 7: q value score prediction
 
         self.conv1p = torch.nn.Conv2d(c_in, c_p1, kernel_size=1, padding="same", bias=False)
         self.conv1g = torch.nn.Conv2d(c_in, c_g1, kernel_size=1, padding="same", bias=False)
