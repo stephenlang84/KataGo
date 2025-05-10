@@ -206,8 +206,7 @@ else()
 endif()
 
 #--------------------------- KATAGO COMPILING AND LINKING --------------------------------------------------------------
-
-add_executable(katago
+set (KataGo_Sources 
   core/global.cpp
   core/base64.cpp
   core/bsearch.cpp
@@ -323,7 +322,12 @@ add_executable(katago
   command/tune.cpp
   command/writetrainingdata.cpp
   main.cpp
-  )
+)
+if(EMBEDDED_MODE_BUILD)
+add_library(katago ${KataGo_Sources})
+else()
+add_executable(katago ${KataGo_Sources})
+endif()
 
 if(EMBEDDED_MODE_BUILD)
   message(STATUS "Building with embedded lib for use in other projects")
