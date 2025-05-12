@@ -1879,15 +1879,7 @@ static GTPEngine::AnalyzeArgs parseAnalyzeCommand(
 }
 
 bool GetLine(string& line) {
-  #ifdef EMBEDDED_MODE
-  // Read from buffer
-  if(commandQueue.empty()) {
-    line = commandQueue.front();
-    commandQueue.pop();
-  } else {
-  #else
   if(!getline(cin,line)) {
-  #endif
     return false;
   }
   return true;

@@ -21,6 +21,10 @@
 #include <vector>
 #include <memory>
 
+#define LITTLE_ENDIAN __ORDER_LITTLE_ENDIAN__
+#define BIG_ENDIAN    __ORDER_BIG_ENDIAN__
+#define BYTE_ORDER    __BYTE_ORDER__
+
 //GLOBAL DEFINES AND FLAGS----------------------------------------------------
 #ifdef __GNUG__  //On g++ only
 
